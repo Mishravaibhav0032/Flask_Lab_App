@@ -84,5 +84,12 @@ def protected():
 def home():
     return render_template("home.html", session=session.get('user'), pretty=json.dumps(session.get('user'), indent=4))
 
+@app.errorhandler(401)
+def unauthorized(e):
+    # Optional: this logs again when Flask handles 401
+    # You may keep it for visibility or remove if already logging in @requires_auth
+    app.logger.warning(f"UNAUTHORIZED ACCESS HANDLED: timestamp={datetime.datetime.utcnow()}")
+    return "Unauthorized", 401
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=env.get("PORT", 3000))
