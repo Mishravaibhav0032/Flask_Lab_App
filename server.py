@@ -38,6 +38,14 @@ def login():
     return oauth.auth0.authorize_redirect(
         redirect_uri=url_for("callback", _external=True)
     )
+def requires_auth(f):
+    def decorated(*args, **kwargs):
+        if "user" not in session:
+            app.logger.warning(f"UNAUTHORIZED ACCESS ATTEMPT: timestamp={datetime.datetime.utcnow()}")
+            return abort(401)
+        return f(*args, **kwargs)
+    decorated.__name__ = f.__name__
+    return decorated
 
 @app.route("/callback", methods=["GET", "POST"])
 def callback():
@@ -65,6 +73,12 @@ def logout():
             quote_via=quote_plus,
         )
     )
+@app.route("/protected")
+@requires_auth
+def protected():
+    userinfo = session["user"]
+    app.logger.info(f"PROTECTED ACCESS: user_id={userinfo['sub']}, timestamp={datetime.datetime.utcnow()}")
+    return f"Welcome to the protected page, {userinfo['email']}!"
 
 @app.route("/")
 def home():
