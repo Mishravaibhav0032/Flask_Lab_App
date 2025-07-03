@@ -40,7 +40,12 @@ def login():
 @app.route("/callback", methods=["GET", "POST"])
 def callback():
     token = oauth.auth0.authorize_access_token()
-    session["user"] = token
+    session["user"] = token["userinfo"]  # Store user info only
+    userinfo = session["user"]
+
+    # Log the login event
+    app.logger.info(f"LOGIN: user_id={userinfo['sub']}, email={userinfo['email']}, timestamp={datetime.datetime.utcnow()}")
+
     return redirect("/")
 
 
